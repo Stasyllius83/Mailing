@@ -1,0 +1,78 @@
+{% extends "mailing/base.html" %}
+{% block content %}
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Страница настройки рассылок</h1>
+</div>
+
+<div class="container col-8 mt-2 mb-5">
+    <div class="card">
+        <div class="card-header text-center">
+            <h1>Статистика</h1>
+        </div>
+        <div class="card-body">
+            <div class="row text-center ">
+                <div class="col-12">
+                    <table class="table">
+                        <tr>
+                            <th><h4>Количество рассылок</h4></th>
+                            <th><h4>Количество активных рассылок</h4></th>
+                            <th><h4>Количество клиентов</h4></th>
+                        </tr>
+                        <body>
+                        <tr>
+                            <td><h4>{{ all }}</h4></td>
+                            <td><h4>{{ active }}</h4></td>
+                            <td><h4>{{ clients_count }}</h4></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container col-10">
+    <div class="card">
+        <div class="card-header text-center">
+            <h1>Рассылки</h1>
+        </div>
+        <div class="card-body">
+            <div class="col-12 text-center">
+                <table class="table">
+                    <tr>
+                        <th><h4>Время рассылки</h4></th>
+                        <th><h4>Статус рассылки</h4></th>
+                        <th><h4>Переодичность рассылки</h4></th>
+                        <th><h4>Подробности рассылки</h4></th>
+                        <th><h4>Редактирование рассылки</h4></th>
+                        <th><h4>Удаление рассылки</h4></th>
+                    </tr>
+                    {% for object in object_list %}
+                    <tr>
+                        <td><h4>{{ object.start_time }}</h4></td>
+                        <td><h4>{{ object.status }}</h4></td>
+                        <td><h4>{{ object.periodicity }}</h4></td>
+                        <td><h4>
+                            <a href="{% url 'mailing:mailing_detail' object.pk %}" class="btn btn-lg btn-primary">Полная
+                                информация</a>
+                        </h4></td>
+                        <td><h4>
+                            <a class="btn btn-lg btn-warning"
+                               href="{% url 'mailing:mailing_update' object.pk %}">Исправить</a>
+                        </h4></td>
+                        <td><h4>
+                            <a class="btn btn-lg btn-danger"
+                               href="{% url 'mailing:mailing_delete' object.pk %}">Удалить</a>
+                        </h4></td>
+                        {% endfor %}
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row text-right mt-4">
+        <div class="col-12">
+            <a class="p-2 btn btn-outline-primary btn-block btn-lg" href="{% url 'mailing:create_mailing' %}">Создать
+                новую рассылку</a>
+        </div>
+    </div>
+    {% endblock %}
