@@ -9,6 +9,7 @@ from django.utils import timezone
 def send_mailling(mailing):
     current_time = timezone.localtime(timezone.now())
     if mailing.start_time <= current_time < mailing.end_time:
+        mailing.status = MailingSettings.STARTED
         for message in mailing.messages.all():
             for client in mailing.clients.all():
                 try:
@@ -20,9 +21,9 @@ def send_mailling(mailing):
                         fail_silently=False
                     )
                     log = Log.objects.create(
-                        time=mailing.start_time,
-                        status=result,
-                        server_response='OK',
+                        time_try=mailing.start_time,
+                        status_try=result,
+                        response_server='OK',
                         mailing_list=mailing,
                         client=client
                     )
@@ -30,9 +31,9 @@ def send_mailling(mailing):
                     return log
                 except SMTPException as error:
                     log = Log.objects.create(
-                        time=mailing.start_time,
-                        status=False,
-                        server_response=error,
+                        time_try=mailing.start_time,
+                        status_try=False,
+                        response_server=error,
                         mailing_list=mailing,
                         client=client
                     )

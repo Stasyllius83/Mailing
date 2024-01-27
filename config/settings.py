@@ -11,11 +11,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+from django.conf import settings
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / '.env')
+logfile = os.path.join(settings.BASE_DIR, "cron.log")
+f">> {logfile}"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -84,9 +87,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mailing',#os.getenv('DB_NAME'),
-        'USER': 'postgres',#os.getenv('DB_USER'),
-        'PASSWORD': '12345',#os.getenv('DB_PASS'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASS'),
     }
 }
 
@@ -144,14 +147,14 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'staslaty@bk.ru'#os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = 'hBMs7mcwAHAgcH1CuaEZ'#os.getenv('MAIL_PASS')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('MAIL_PASS')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = EMAIL_HOST_USER
 
 CRONJOBS = [
-    ('* * * * *', 'mailing.cron.daily_mailings'),
+    ('* * * * *', 'mailing.cron.daily_mailings', '>> /tmp/cron.log'),
     ('0 9 * * 1', 'mailing.cron.weekly_mailings'),
     ('0 9 1 * *', 'mailing.cron.monthly_mailings'),
 ]

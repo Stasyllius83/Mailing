@@ -1,9 +1,9 @@
 from django.forms import inlineformset_factory
-from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
 from mailing.forms import ClientForm, MailingForm, MessageForm
 from mailing.models import Client, Log, MailingSettings, Message
+
 
 
 class ClientListView(ListView):
