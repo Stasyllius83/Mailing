@@ -8,8 +8,9 @@ from django.utils import timezone
 
 def send_mailling(mailing):
     current_time = timezone.localtime(timezone.now())
-    if mailing.start_time <= current_time < mailing.end_time:
+    if mailing.start_time <= current_time < mailing.finish_time:
         mailing.status = MailingSettings.STARTED
+        mailing.save()
         for message in mailing.messages.all():
             for client in mailing.clients.all():
                 try:
@@ -45,7 +46,8 @@ def send_mailling(mailing):
 
 
 def daily_mailings():
-    mailings = MailingSettings.objects.filter(periodicity="Раз в день", status="Запущена")
+    mailings = MailingSettings.objects.filter(periodicity="Раз в день")
+    print(mailings)
     if mailings.exists():
         for mailing in mailings:
             send_mailling(mailing)

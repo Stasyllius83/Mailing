@@ -57,18 +57,6 @@ class MailingCreateView(CreateView):
     template_name = 'mailing/mailing_form.html'
     success_url = reverse_lazy('mailing:mailing_list')
 
-    def get_context_data(self, **kwargs):
-        context_data = super().get_context_data(**kwargs)
-        MessageFormset = inlineformset_factory(MailingSettings, Message, extra=1, form=MessageForm)
-
-        if self.request.method == 'POST':
-            context_data['formset'] = MessageFormset(self.request.POST)
-        else:
-            context_data['formset'] = MessageFormset()
-
-        return context_data
-
-
     def form_valid(self, form):
         formset = self.get_context_data()['formset']
         self.object = form.save()
@@ -77,6 +65,18 @@ class MailingCreateView(CreateView):
             formset.save()
 
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        MessageFormset = inlineformset_factory(MailingSettings, Message, form=MessageForm, extra=1)
+
+        if self.request.method == 'POST':
+            context_data['formset'] = MessageFormset(self.request.POST)
+        else:
+            context_data['formset'] = MessageFormset()
+
+        return context_data
+
 
 
 class MailingUpdateView(UpdateView):
@@ -87,7 +87,7 @@ class MailingUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        MessageFormset = inlineformset_factory(MailingSettings, Message, extra=1, form=MessageForm)
+        MessageFormset = inlineformset_factory(MailingSettings, Message, form=MessageForm, extra=1)
 
         if self.request.method == 'POST':
             context_data['formset'] = MessageFormset(self.request.POST, instance=self.object)

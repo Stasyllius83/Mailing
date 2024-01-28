@@ -1,7 +1,7 @@
 {% extends "mailing/base.html" %}
-{% load crispy_forms_tags %}
+
 {% block content %}
-<form method="post" class="row">
+<form class="row" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="col-md-6">
         <div class="card mb-4 box-shadow">
@@ -9,7 +9,7 @@
                 <h3>Настройки рассылки</h3>
             </div>
             <div class="card-body">
-                {% crispy form %}
+                {{ form.as_p }}
                 <button type="submit" class="btn btn-primary">
                     {% if object %}
                     Изменить
@@ -29,7 +29,7 @@
             <div class="card-body">
                 {{ formset.management_form }}
                 {% for form in formset.forms %}
-                {% crispy form %}
+                {{ form.as_p }}
                 {% if not forloop.last %}
                 <hr>
                 {% endif %}

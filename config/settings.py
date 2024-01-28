@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap4',
 
-
     'mailing',
+    'blog',
+    'users',
+
     'django_crontab',
 ]
 
@@ -152,6 +154,9 @@ EMAIL_HOST_PASSWORD = os.getenv('MAIL_PASS')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = EMAIL_HOST_USER
+
+AUTH_USER_MODEL = 'users.User'
+
 
 CRONJOBS = [
     ('* * * * *', 'mailing.cron.daily_mailings', '>> /tmp/cron.log'),
