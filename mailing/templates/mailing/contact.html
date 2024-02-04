@@ -1,0 +1,30 @@
+{% extends 'mailing/base.html' %}
+
+{% block content %}
+<div class="col-mb-4">
+  <div class="card mb-4 box-shadow">
+    <div class="card-body">
+      <p class="card-text">
+        Офис КРД
+      </p>
+    </div>
+  </div>
+</div>
+<div class="col-mb-4">
+  <div class="card mb-4 box-shadow">
+    <div class="card-body">
+      <h2>Напишите нам</h2>
+      <form method="post">
+        {% csrf_token %}
+        <label for="name">Имя</label>
+        <input type="text" name="name" class="form-control" id="name" placeholder="Ваше имя" required>
+        <label for="email">Почта</label>
+        <input type="text" name="email" class="form-control" id="email" placeholder="Контактная почта" required>
+        <label for="message">Сообщение</label>
+        <textarea type="text" name="message" class="form-control" id="message" placeholder="Ваше сообщение" required></textarea>
+        <button type="submit" class="btn btn-primary form-control">Отравить</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -39,30 +39,46 @@
             <div class="col-12 text-center">
                 <table class="table">
                     <tr>
+
                         <th><h4>Время рассылки</h4></th>
                         <th><h4>Статус рассылки</h4></th>
                         <th><h4>Переодичность рассылки</h4></th>
                         <th><h4>Подробности рассылки</h4></th>
-                        <th><h4>Редактирование рассылки</h4></th>
-                        <th><h4>Удаление рассылки</h4></th>
+                        {% if perms.mailing.set_active %}
+                            <th><h4>Статус активности</h4></th>
+                        {% endif %}
+                            <th><h4>Редактирование рассылки</h4></th>
+                        {% if user.is_superuser %}
+                            <th><h4>Удаление рассылки</h4></th>
+                        {% endif %}
                     </tr>
-                    {% for object in object_list %}
+                    {% for mailing in object_list %}
                     <tr>
-                        <td><h4>{{ object.start_time }}</h4></td>
-                        <td><h4>{{ object.status }}</h4></td>
-                        <td><h4>{{ object.periodicity }}</h4></td>
+                        <td><h4>{{ mailing.start_time }}</h4></td>
+                        <td><h4>{{ mailing.status }}</h4></td>
+                        <td><h4>{{ mailing.periodicity }}</h4></td>
                         <td><h4>
-                            <a href="{% url 'mailing:mailing_detail' object.pk %}" class="btn btn-lg btn-primary">Полная
-                                информация</a>
+                            <a href="{% url 'mailing:mailing_detail' mailing.pk %}" class="btn btn-lg btn-primary">Подробнее</a>
                         </h4></td>
-                        <td><h4>
-                            <a class="btn btn-lg btn-warning"
-                               href="{% url 'mailing:mailing_update' object.pk %}">Исправить</a>
-                        </h4></td>
-                        <td><h4>
-                            <a class="btn btn-lg btn-danger"
-                               href="{% url 'mailing:mailing_delete' object.pk %}">Удалить</a>
-                        </h4></td>
+                        {% if perms.mailing.set_active %}
+                            <td><h4>{% if mailing.is_active %}
+                                        <a class="btn btn-lg btn-danger" href="{% url 'mailing:set_active' mailing.pk %}" role="button">Деактивировать</a></h4></td>
+                                    {% else %}
+                                        <a class="btn btn-lg btn-success" href="{% url 'mailing:set_active' mailing.pk %}" role="button">Активировать</a></h4></td>
+                                    {% endif %}
+                        {% endif %}
+                        {% if perms.mailing.change_mailing or mailing.owner == user or user.is_superuser%}
+                            <td><h4>
+                                <a class="btn btn-lg btn-warning"
+                                    href="{% url 'mailing:mailing_update' mailing.pk %}">Исправить</a>
+                            </h4></td>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <td><h4>
+                                <a class="btn btn-lg btn-danger"
+                                    href="{% url 'mailing:mailing_delete' mailing.pk %}">Удалить</a>
+                            </h4></td>
+                        {% endif %}
                         {% endfor %}
                     </tr>
                 </table>

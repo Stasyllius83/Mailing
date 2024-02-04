@@ -5,6 +5,7 @@ from pytils.translit import slugify
 from django.urls import reverse, reverse_lazy
 from blog.models import Blog
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 class BlogListView(ListView):
     model = Blog
@@ -16,7 +17,7 @@ class BlogListView(ListView):
         return queryset
 
 
-class BlogCreateView(CreateView):
+class BlogCreateView(LoginRequiredMixin, CreateView):
     model = Blog
     fields = ('title', 'content', 'preview', 'date_create', 'is_published',)
     success_url = reverse_lazy('blog:blogs_list')
@@ -30,7 +31,7 @@ class BlogCreateView(CreateView):
         return super().form_valid(form)
 
 
-class BlogUpdateView(UpdateView):
+class BlogUpdateView(UserPassesTestMixin, UpdateView):
     model = Blog
     fields = ('title', 'content', 'preview', 'date_create', 'is_published',)
 
@@ -45,6 +46,10 @@ class BlogUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('blog:view_blog', args= [self.kwargs.get('pk')])
 
+    def test_func(self):
+        return self.get_object().author == self.request.user or self.request.user.is_superuser \
+            or self.request.user.has_perms(['blog.change_blog'])
+
 
 
 class BlogDetailView(DetailView):
@@ -54,10 +59,14 @@ class BlogDetailView(DetailView):
         self.object = super().get_object(queryset)
         self.object.count_views += 1
         self.object.save()
-        
+
         return self.object
 
 
 class BlogDeleteView(DeleteView):
     model = Blog
     success_url = reverse_lazy('blog:blogs_list')
+
+    def test_func(self):
+        return self.get_object().author == self.request.user or self.request.user.is_superuser \
+            or self.request.user.has_perms(['blog.delete_blog'])

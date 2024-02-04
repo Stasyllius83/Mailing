@@ -1,4 +1,5 @@
 from django.db import models
+from config import settings
 
 NULLABLE = {'null': True, 'blank': True}
 
@@ -6,6 +7,8 @@ class Client(models.Model):
     email = models.EmailField(max_length=150, verbose_name='почта', unique=True)
     FIO = models.CharField(max_length=150, verbose_name='ФИО')
     comment = models.TextField(verbose_name='комментарий', **NULLABLE)
+    is_active = models.BooleanField(default=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE, verbose_name='владелец')
 
     def __str__(self) -> str:
         return f'{self.FIO} {self.email}'
@@ -14,6 +17,9 @@ class Client(models.Model):
         verbose_name = "клиент"
         verbose_name_plural = "клиенты"
         ordering = ('FIO',)
+        permissions = [
+            ('set_active_client', 'Can active client'),
+        ]
 
 
 class MailingSettings(models.Model):
@@ -41,8 +47,10 @@ class MailingSettings(models.Model):
     finish_time = models.DateTimeField(verbose_name='время окончания рассылки')
     periodicity = models.CharField(max_length=100, verbose_name='периодичность рассылки', choices=PERIODICITY_CHOICES)
     status = models.CharField(max_length=100, choices=STATUS_CHOICES, default=CREATED, verbose_name='статус рассылки')
-
+    is_active = models.BooleanField(default=True)
     clients = models.ManyToManyField(Client, verbose_name='клиенты рассылки')
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE, verbose_name='владелец')
 
     def __str__(self) -> str:
         return f'time: {self.start_time} - {self.finish_time} periodicity: {self.periodicity}, status: {self.status}'
@@ -50,6 +58,9 @@ class MailingSettings(models.Model):
     class Meta:
         verbose_name = 'настройки рассылки'
         verbose_name_plural = 'настройки рассылки'
+        permissions = [
+            ('set_active', 'Can active mailing'),
+        ]
 
 
 class Message(models.Model):

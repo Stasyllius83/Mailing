@@ -11,14 +11,12 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
-from django.conf import settings
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
-logfile = os.path.join(settings.BASE_DIR, "cron.log")
-f">> {logfile}"
+# GRON_LOGFILE = os.path.join(BASE_DIR, "cron.log")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -134,8 +132,11 @@ STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
 
-    BASE_DIR / 'mailing/static'
+    BASE_DIR / 'blog/static'
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -146,20 +147,25 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mail.ru'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('MAIL_PASS')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = EMAIL_HOST_USER
 
 AUTH_USER_MODEL = 'users.User'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 
 
 CRONJOBS = [
-    ('* * * * *', 'mailing.cron.daily_mailings', '>> /tmp/cron.log'),
-    ('0 9 * * 1', 'mailing.cron.weekly_mailings'),
-    ('0 9 1 * *', 'mailing.cron.monthly_mailings'),
+    ('0 12 * * *', 'mailing.cron.daily_mailings'),
+    ('0 12 * * 1', 'mailing.cron.weekly_mailings'),
+    ('0 12 1 * *', 'mailing.cron.monthly_mailings'),
 ]
+
+CACHE_ENABLE = os.getenv('CACHE_ENABLE') == '1'
