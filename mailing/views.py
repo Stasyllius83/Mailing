@@ -6,9 +6,10 @@ from mailing.forms import ClientForm, MailingForm, MessageForm
 from mailing.models import Client, Log, MailingSettings, Message
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import permission_required
-from mailing.service import send_deactivate_email
+from mailing.service import get_cached_client, get_cached_log, get_cached_mailing, get_cached_main, send_deactivate_email
 from blog.models import Blog
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import cache_page
 
 
 
@@ -19,11 +20,13 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context_data = super().get_context_data( **kwargs)
         context_data['count_mailings'] = MailingSettings.objects.all().count()
         context_data['count_mailings_is_active'] = MailingSettings.objects.filter(status=MailingSettings.STARTED).count()
-        context_data['clients_count'] = Client.objects.all().count()
+        context_data['clients_count'] = Client.objects.all().order_by('email').distinct('email').count()
         context_data['random_blog'] = Blog.objects.order_by('?')[:3]
+        context_data['object_list'] = get_cached_main()
 
         return context_data
 
+    @cache_page(60 * 15)
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
         queryset = queryset.order_by('?')
@@ -33,6 +36,11 @@ class HomeView(LoginRequiredMixin, TemplateView):
 class ClientListView(LoginRequiredMixin, ListView):
     model = Client
     template_name = 'mailing/clients_list.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['object_list'] = get_cached_client()
+        return context_data
 
 
 class ClientCreateView(LoginRequiredMixin, CreateView):
@@ -90,6 +98,8 @@ class MailingListView(LoginRequiredMixin, ListView):
         [[clients.add(client.email) for client in mailing.clients.all()] for mailing in mailing_list]
         context_data['clients_count'] = len(clients)
 
+        context_data['object_list'] = get_cached_mailing()
+
         return context_data
 
 
@@ -101,8 +111,8 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         formset = self.get_context_data()['formset']
-        self.object.owner = self.request.user
         self.object = form.save()
+        self.object.owner = self.request.user
         if formset.is_valid():
             formset.instance = self.object
             formset.save()
@@ -197,6 +207,8 @@ class LogListView(LoginRequiredMixin, ListView):
         context_data['all'] = context_data['object_list'].count()
         context_data['success'] = context_data['object_list'].filter(status_try=True).count()
         context_data['error'] = context_data['object_list'].filter(status_try=False).count()
+
+        context_data['object_list'] = get_cached_log()
 
         return context_data
 

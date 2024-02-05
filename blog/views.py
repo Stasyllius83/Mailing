@@ -4,10 +4,12 @@ from blog.models import Blog
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from blog.services import get_cached_blogs
+from django.views.decorators.cache import cache_page
 
 class BlogListView(LoginRequiredMixin, ListView):
     model = Blog
     template_name = 'blog/blogs_list.html'
+
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)

@@ -3,7 +3,6 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from users.apps import UsersConfig
 from users.views import EmailVerify, RegistrView, ProfileView, forgot_password
-from django.views.decorators.cache import cache_page
 
 
 
@@ -17,5 +16,5 @@ urlpatterns = [
     path('confirm_email/', TemplateView.as_view(template_name='users/confirm_email.html'), name='confirm_email'),
     path('register/', RegistrView.as_view(), name='register'),
     path('forgot/', forgot_password, name='forgot'),
-    path('profile/', cache_page(60)(ProfileView.as_view()), name='profile'),
+    path('profile/', ProfileView.as_view(), name='profile'),
 ]

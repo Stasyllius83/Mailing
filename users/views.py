@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.tokens import default_token_generator as token_generator
 from django.core.mail import send_mail
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 
 
 
@@ -27,6 +28,12 @@ class LoginView(BaseLoginView):
 
 class LogoutView(BaseLogoutView):
     template_name = 'users/logout.html'
+    redirect_to = '/'
+
+    def post(self, request, *args, **kwargs):
+        cache.clear()
+        return super().post(request, args, kwargs)
+
 
 
 class EmailVerify(View):
