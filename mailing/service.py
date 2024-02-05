@@ -1,12 +1,11 @@
-from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from config import settings
 
 
-def change_active_object(request, model ,pk):
-
-    client = get_object_or_404(model, pk=pk)
-    if client.is_active:
-        client.is_active = False
-    else:
-        client.is_active = True
-
-    client.save()
+def send_deactivate_email(user):
+    send_mail(
+        'Вас деактивировали',
+        'Уважаемый пользователь, вас деактивировали. Обратитесь в поддержку, чтобы активироваться',
+        settings.EMAIL_HOST_USER,
+        recipient_list=[user.email]
+    )

@@ -36,6 +36,7 @@ class EmailVerify(View):
 
         if user is not None and token_generator.check_token(user, token):
             user.is_active = True
+            user.email_verify = True
             user.save()
             login(request, user)
             return redirect('mailing:mailing_list')
@@ -68,6 +69,7 @@ class RegistrView(CreateView):
 
         if form.is_valid():
             user=form.save()
+            user.email_verify = False
             user.is_active = False
             user.save()
             send_email_for_verify(request, user)

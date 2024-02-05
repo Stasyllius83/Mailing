@@ -1,13 +1,33 @@
 from django.forms import inlineformset_factory
 from django.shortcuts import render, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.urls import reverse_lazy, reverse
 from mailing.forms import ClientForm, MailingForm, MessageForm
 from mailing.models import Client, Log, MailingSettings, Message
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import permission_required
-from mailing.service import change_active_object
+from mailing.service import send_deactivate_email
+from blog.models import Blog
+from django.shortcuts import get_object_or_404
 
+
+
+class HomeView(LoginRequiredMixin, TemplateView):
+    template_name = 'mailing/home.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data( **kwargs)
+        context_data['count_mailings'] = MailingSettings.objects.all().count()
+        context_data['count_mailings_is_active'] = MailingSettings.objects.filter(status=MailingSettings.STARTED).count()
+        context_data['clients_count'] = Client.objects.all().count()
+        context_data['random_blog'] = Blog.objects.order_by('?')[:3]
+
+        return context_data
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super().get_queryset(*args, **kwargs)
+        queryset = queryset.order_by('?')
+        return queryset[:3]
 
 
 class ClientListView(LoginRequiredMixin, ListView):
@@ -21,7 +41,7 @@ class ClientCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('mailing:clients_list')
 
 
-class ClientDeleteView(UserPassesTestMixin, DeleteView):
+class ClientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Client
     success_url = reverse_lazy('mailing:clients_list')
 
@@ -32,7 +52,15 @@ class ClientDeleteView(UserPassesTestMixin, DeleteView):
 
 @permission_required('mailing.set_active_client')
 def toggle_active_client(request, pk):
-    change_active_object(request, Client, pk)
+    client_item = get_object_or_404(Client, pk=pk)
+    if client_item.is_active:
+        client_item.is_active = False
+        send_deactivate_email(client_item)
+    else:
+        client_item.is_active = True
+
+    client_item.save()
+
     return redirect(reverse('mailing:clients_list'))
 
 
@@ -54,8 +82,8 @@ class MailingListView(LoginRequiredMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
 
-        context_data['all'] = context_data['object_list'].count()
-        context_data['active'] = context_data['object_list'].filter(status=MailingSettings.STARTED).count()
+        context_data['all_mailings'] = context_data['object_list'].count()
+        context_data['active_mailings'] = context_data['object_list'].filter(status=MailingSettings.STARTED).count()
 
         mailing_list = context_data['object_list'].prefetch_related('clients')
         clients = set()
@@ -93,7 +121,7 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
         return context_data
 
 
-class MailingUpdateView(UserPassesTestMixin, UpdateView):
+class MailingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = MailingSettings
     form_class = MailingForm
     template_name = 'mailing/mailing_form.html'
@@ -137,7 +165,7 @@ class MailingUpdateView(UserPassesTestMixin, UpdateView):
         return form
 
 
-class MailingDeleteView(UserPassesTestMixin, DeleteView):
+class MailingDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = MailingSettings
     template_name = 'mailing/mailing_confirm_delete.html'
     success_url = reverse_lazy('mailing:mailing_list')
@@ -149,7 +177,14 @@ class MailingDeleteView(UserPassesTestMixin, DeleteView):
 
 @permission_required('mailing.set_active')
 def toggle_active_mailing(request, pk):
-    change_active_object(request, MailingSettings, pk)
+    mailing_item = get_object_or_404(MailingSettings, pk=pk)
+    if mailing_item.is_active:
+        mailing_item.is_active = False
+    else:
+        mailing_item.is_active = True
+
+    mailing_item.save()
+
     return redirect(reverse('mailing:mailing_list'))
 
 
@@ -159,7 +194,6 @@ class LogListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
-
         context_data['all'] = context_data['object_list'].count()
         context_data['success'] = context_data['object_list'].filter(status_try=True).count()
         context_data['error'] = context_data['object_list'].filter(status_try=False).count()

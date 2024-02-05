@@ -5,16 +5,18 @@
   <h1 class="display-4">Блог</h1>
 </div>
 <div class="col-12 mb-5">
+  {% if perms.blog.add_blog %}
   <a class="btn btn-primary" href="{% url 'blog:create_blog' %}">Добавить блог</a>
+  {% endif %}
 </div>
 <div class="album py-5 bg-body-tertiary">
   <div class="container">
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-      {% for blog in object_list %}
 
+      {% for blog in object_list %}
       <div class="col">
         <div class="card shadow-sm">
-          <img src="{{ object.preview|mediapath }}" class="card-img-top" />
+          <img src="{{ blog.preview|mediapath }}" class="bd-placeholder-img card-img-top" width="325" height="325"/>
           <div class="card-body mb-5">
             <p class="card-text">{{ blog|title }}({{ blog.slug }})</p>
             <p class="text-center"> {{blog.content}}</p>
@@ -22,7 +24,7 @@
               <small class="text-body-secondary">{{ blog.date_create }}</small>
               <small class="text-body-secondary">{{ blog.count_views }} Просмотров</small>
               <a class="btn btn-info" href="{% url 'blog:view_blog' blog.pk %}">Подробнее</a>
-              {% if perms.blog.change_blog or blog.author == user %}
+              {% if perms.blog.change_blog %}
                 <a class="btn btn btn-warning" href="{% url 'blog:update_blog' blog.pk %}">Изменить</a>
               {% endif %}
               {% if perms.blog.delete_blog %}
